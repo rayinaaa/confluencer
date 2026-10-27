@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.log
+.env
+ledger.db
+ledger.db-journal
+ledger.db-wal
+ledger.db-shm
+.DS_Store

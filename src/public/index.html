@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transaction Ledger | Double-Entry ACID System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar / Topbar Header -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>Confluencr <span>Ledger</span></h1>
+          <span class="badge-assessment">Full Stack Assessment</span>
+        </div>
+      </div>
+
+      <div class="nav-metrics">
+        <div class="metric-pill">
+          <span class="dot live"></span>
+          <span>SQLite ACID Engine</span>
+        </div>
+        <div class="metric-pill">
+          <span class="dot integrity"></span>
+          <span>Strict Immutability</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <a href="/api-docs" target="_blank" class="btn btn-outline" id="btn-swagger">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+          Swagger Docs
+        </a>
+      </div>
+    </header>
+
+    <!-- Stats Banner -->
+    <section class="stats-overview">
+      <div class="stat-card">
+        <div class="stat-label">Active Accounts</div>
+        <div class="stat-value" id="stat-total-accounts">0</div>
+        <div class="stat-sub">Zero-balance default initialization</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">System Liquidity</div>
+        <div class="stat-value highlight" id="stat-system-liquidity">$0.00</div>
+        <div class="stat-sub">Aggregated ledger balance</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Transactions</div>
+        <div class="stat-value" id="stat-total-transactions">0</div>
+        <div class="stat-sub">Immutable ledger entries</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ledger Integrity</div>
+        <div class="stat-value success" id="stat-ledger-status">100% Consistent</div>
+        <div class="stat-sub">Automated audit verified</div>
+      </div>
+    </section>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" data-tab="accounts-tab" id="tab-nav-accounts">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        Accounts Management
+      </button>
+      <button class="tab-btn" data-tab="transactions-tab" id="tab-nav-transactions">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+        </svg>
+        Execute Transaction
+      </button>
+      <button class="tab-btn" data-tab="transfers-tab" id="tab-nav-transfers">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"></path>
+        </svg>
+        Money Transfer <span class="badge-bonus">Bonus</span>
+      </button>
+      <button class="tab-btn" data-tab="history-tab" id="tab-nav-history">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Ledger History & Audit
+      </button>
+    </nav>
+
+    <!-- Tab Contents -->
+    <main class="content-container">
+
+      <!-- TAB 1: ACCOUNTS -->
+      <section class="tab-panel active" id="accounts-tab">
+        <div class="panel-header">
+          <div>
+            <h2>Accounts Directory</h2>
+            <p>Create and inspect bank accounts with verified current balances.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-open-create-account">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create Account
+          </button>
+        </div>
+
+        <!-- Create Account Modal / Form -->
+        <div class="card form-card" id="create-account-card">
+          <div class="card-title">
+            <h3>New Account Registration</h3>
+            <span class="note-pill">Initial balance is enforced to $0.00</span>
+          </div>
+          <form id="create-account-form">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="account-name">Account Holder Name *</label>
+                <input type="text" id="account-name" placeholder="e.g. Satoshi Nakamoto" required maxlength="100">
+              </div>
+              <div class="form-group">
+                <label>Initial Balance</label>
+                <input type="text" value="$0.00 (Fixed by System)" disabled class="input-disabled">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btn-submit-account">Register Account</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Accounts Table -->
+        <div class="card table-card">
+          <div class="table-container">
+            <table class="data-table" id="accounts-table">
+              <thead>
+                <tr>
+                  <th>Account ID</th>
+                  <th>Holder Name</th>
+                  <th>Current Balance</th>
+                  <th>Created At</th>
+                  <th>Ledger Audit</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="accounts-tbody">
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">Loading accounts...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: EXECUTE TRANSACTION -->
+      <section class="tab-panel" id="transactions-tab">
+        <div class="panel-header">
+          <div>
+            <h2>Post Credit or Debit Transaction</h2>
+            <p>Execute atomic balance updates adhering to ledger consistency and overdraft protection.</p>
+          </div>
+        </div>
+
+        <div class="grid-2-col">
+          <div class="card form-card">
+            <form id="transaction-form">
+              <div class="form-group">
+                <label for="tx-account-id">Target Account *</label>
+                <select id="tx-account-id" required>
+                  <option value="" disabled selected>Select an account</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Transaction Type *</label>
+                <div class="toggle-group">
+                  <button type="button" class="btn-toggle active" data-type="credit" id="type-credit-btn">
+                    <span class="icon-indicator credit-bg"></span>
+                    Credit (+)
+                  </button>
+                  <button type="button" class="btn-toggle" data-type="debit" id="type-debit-btn">
+                    <span class="icon-indicator debit-bg"></span>
+                    Debit (-)
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="tx-amount">Amount ($) *</label>
+                <input type="number" id="tx-amount" step="0.01" min="0.01" placeholder="e.g. 100.50" required>
+                <small class="helper-text">Must be greater than 0 with at most 2 decimal places.</small>
+              </div>
+
+              <div class="form-group">
+                <div class="label-with-action">
+                  <label for="tx-ref-id">Reference ID *</label>
+                  <button type="button" class="btn-inline-action" id="btn-generate-ref">Generate UUID</button>
+                </div>
+                <input type="text" id="tx-ref-id" placeholder="e.g. REF-2026-9042" required>
+                <small class="helper-text">Must be unique per account. Duplicates will be rejected (HTTP 409).</small>
+              </div>
+
+              <div class="form-group">
+                <label for="tx-description">Description (Optional)</label>
+                <input type="text" id="tx-description" placeholder="e.g. Payroll deposit, Vendor invoice" maxlength="255">
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block" id="btn-submit-tx">
+                Commit Transaction to Ledger
+              </button>
+            </form>
+          </div>
+
+          <!-- Live Balance Preview Simulator -->
+          <div class="card simulator-card">
+            <h3>Live Ledger Simulator</h3>
+            <p class="simulator-desc">Preview the mathematical effect on the account before committing to the database.</p>
+
+            <div class="balance-flow">
+              <div class="flow-step">
+                <span class="step-label">Current Verified Balance</span>
+                <span class="step-value" id="sim-current-balance">$0.00</span>
+              </div>
+              <div class="flow-operator" id="sim-operator">+</div>
+              <div class="flow-step">
+                <span class="step-label">Transaction Delta</span>
+                <span class="step-value" id="sim-delta">$0.00</span>
+              </div>
+              <div class="flow-equals">=</div>
+              <div class="flow-step projected">
+                <span class="step-label">Projected Balance</span>
+                <span class="step-value" id="sim-projected-balance">$0.00</span>
+              </div>
+            </div>
+
+            <div class="rule-box" id="sim-rule-notice">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <div id="sim-rule-text">Select an account and enter an amount to simulate ledger impact.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: MONEY TRANSFER (BONUS) -->
+      <section class="tab-panel" id="transfers-tab">
+        <div class="panel-header">
+          <div>
+            <h2>Inter-Account Money Transfer <span class="badge-bonus">Bonus Feature</span></h2>
+            <p>Execute atomic transfers between two accounts with dual ledger entries and full rollback protection.</p>
+          </div>
+        </div>
+
+        <div class="card form-card max-w-750">
+          <form id="transfer-form">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="transfer-source-id">Source Account (Debit) *</label>
+                <select id="transfer-source-id" required>
+                  <option value="" disabled selected>Select source account</option>
+                </select>
+                <small class="helper-text" id="transfer-source-balance-hint">Available: $0.00</small>
+              </div>
+
+              <div class="transfer-arrow-col">
+                <div class="arrow-circle">➔</div>
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="transfer-dest-id">Destination Account (Credit) *</label>
+                <select id="transfer-dest-id" required>
+                  <option value="" disabled selected>Select destination account</option>
+                </select>
+                <small class="helper-text" id="transfer-dest-balance-hint">Current: $0.00</small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="transfer-amount">Transfer Amount ($) *</label>
+                <input type="number" id="transfer-amount" step="0.01" min="0.01" placeholder="e.g. 50.00" required>
+              </div>
+              <div class="form-group flex-1">
+                <div class="label-with-action">
+                  <label for="transfer-ref-id">Transfer Reference *</label>
+                  <button type="button" class="btn-inline-action" id="btn-generate-transfer-ref">Generate UUID</button>
+                </div>
+                <input type="text" id="transfer-ref-id" placeholder="e.g. TRF-2026-001" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="transfer-description">Transfer Memo / Description</label>
+              <input type="text" id="transfer-description" placeholder="e.g. Cross-account fund allocation" maxlength="255">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btn-submit-transfer">
+              Execute Atomic Transfer
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 4: LEDGER HISTORY & AUDIT -->
+      <section class="tab-panel" id="history-tab">
+        <div class="panel-header">
+          <div>
+            <h2>Transaction Ledger History</h2>
+            <p>Immutable ledger records sorted latest-first with filtering and pagination.</p>
+          </div>
+          <div class="history-controls">
+            <div class="form-group-inline">
+              <label for="filter-account-id">Account:</label>
+              <select id="filter-account-id">
+                <option value="" disabled selected>Select an account to view ledger</option>
+              </select>
+            </div>
+            <div class="form-group-inline">
+              <label for="filter-type">Type:</label>
+              <select id="filter-type">
+                <option value="">All Transactions</option>
+                <option value="credit">Credits Only</option>
+                <option value="debit">Debits Only</option>
+              </select>
+            </div>
+            <div class="form-group-inline">
+              <label for="filter-limit">Page Size:</label>
+              <select id="filter-limit">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ledger Integrity Proof Box -->
+        <div class="card audit-card" id="audit-proof-card" style="display: none;">
+          <div class="audit-header">
+            <h4>Mathematical Integrity Audit</h4>
+            <span class="audit-badge" id="audit-status-badge">Verified</span>
+          </div>
+          <div class="audit-body">
+            <div class="audit-item">
+              <span class="audit-label">Stored Balance:</span>
+              <span class="audit-val" id="audit-stored-val">$0.00</span>
+            </div>
+            <div class="audit-item">
+              <span class="audit-label">Reconstructed Sum (Credits - Debits):</span>
+              <span class="audit-val" id="audit-calculated-val">$0.00</span>
+            </div>
+            <div class="audit-item">
+              <span class="audit-label">Variance:</span>
+              <span class="audit-val zero-var" id="audit-variance">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction Table -->
+        <div class="card table-card">
+          <div class="table-container">
+            <table class="data-table" id="transactions-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Transaction ID</th>
+                  <th>Reference ID</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-tbody">
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">Please select an account to view transaction ledger.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="pagination-bar" id="pagination-controls">
+            <div class="pagination-info" id="pagination-info">Showing 0 of 0 records</div>
+            <div class="pagination-actions">
+              <button class="btn btn-sm btn-outline" id="btn-prev-page" disabled>Previous</button>
+              <span class="page-indicator" id="current-page-indicator">Page 1 of 1</span>
+              <button class="btn btn-sm btn-outline" id="btn-next-page" disabled>Next</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
