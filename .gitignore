@@ -6,4 +6,5 @@ ledger.db
 ledger.db-journal
 ledger.db-wal
 ledger.db-shm
+*.zip
 .DS_Store
